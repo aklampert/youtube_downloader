@@ -9,7 +9,7 @@ YOUTUBE_LINK = 'https://www.youtube.com/watch?v=kHwc3EU9XZQ'
 AUDIO_TYPE = 'webm'
 DESIRED_AUDIO_TYPE = 'wav'
 NAME_OF_FILE = 'siberian_music'
-PARENT_PATH = r'C:\Users\LENOVO USER\Videos\impressions\music'
+PARENT_PATH = os.getcwd()
 OUTPUT_AUDIO_PATH = os.path.join(PARENT_PATH, '{}.{}'.format(NAME_OF_FILE, AUDIO_TYPE))
 
 # slicing; times should be in seconds
