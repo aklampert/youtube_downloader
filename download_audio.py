@@ -1,7 +1,18 @@
 import youtube_dl
 import os
+import logging
 from pydub import AudioSegment
 from datetime import datetime as dt
+
+# Log
+logging.basicConfig(filename='download_audio.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+console.setFormatter(formatter)
+
+logging.getLogger('').addHandler(console)
 
 
 # basic metadata
@@ -18,7 +29,7 @@ MIN_TIME = 0
 MAX_TIME = 26
 
 # deleting files
-DELETE_ORIGINAL = True
+DELETE_ORIGINAL = False
 
 ######################################
 # FUNCTIONS
@@ -37,9 +48,13 @@ def construct_options(audio_type=AUDIO_TYPE, output_audio_path=OUTPUT_AUDIO_PATH
 
 
 def download_audio(options, youtube_link=YOUTUBE_LINK):
-    """ Downloads YouTube video, given the desired options and link. """
+    """ Downloads YouTube audio, given the desired options and link. """
+    logger = logging.getLogger(__name__)
+    logger.info('Kicking off YouTube download attempt...')
     with youtube_dl.YoutubeDL(options) as ydl:
         ydl.download([YOUTUBE_LINK])
+    logger.info('YouTube download was successful!')
+    
 
 
 def grab_audio_slice(audio_file=OUTPUT_AUDIO_PATH, 
@@ -49,44 +64,45 @@ def grab_audio_slice(audio_file=OUTPUT_AUDIO_PATH,
                      max_time=MAX_TIME,
                      delete_original=DELETE_ORIGINAL):
     """ Grabs slice of desired audio file."""
+    logger = logging.getLogger(__name__)
     audio_file_basename = os.path.basename(OUTPUT_AUDIO_PATH)
 
     # Importing file; need to track how long it takes as it can be time consuming...
-    print('Importing {} for slicing...'.format(audio_file_basename))
-    start = dt.now()
+    logger.info('Importing {} for slicing...'.format(audio_file_basename))
     new_audio_file = AudioSegment.from_file(audio_file, format=audio_format)
-    print('Finished importing. Total time taken: {}'.format(dt.now()-start))
 
     # creating slice
-    print('Slicing {}...'.format(audio_file_basename))
+    logger.info('Slicing {}...'.format(audio_file_basename))
     new_audio_file = new_audio_file[min_time*1000: max_time*1000]
     try:
-        print('Exporting...')
+        logger.info('Exporting...')
         new_audio_file_path = '{new_output}_{min_time}-{max_time}.{desired_audio_format}'\
                                 .format(new_output=audio_file.split('.')[0], 
                                         min_time=min_time, 
                                         max_time=max_time,
                                         desired_audio_format=desired_audio_format)
         new_audio_file.export(new_audio_file_path, format='wav')
-        print('File successfully exported to {}!'.format(new_audio_file_path))
+        logger.info('File successfully exported to {}!'.format(new_audio_file_path))
 
         # delete source file if desired
         if delete_original: 
             os.remove(audio_file)
-            print('Deleted {}. Only have {} now.'.format(audio_file_basename, os.path.basename(new_audio_file_path)))
-    except Exception:
-        raise Exception('Trouble exporting audio slice! Please double check your options.')
+            logger.info('Deleted {}. Only have {} now.'.format(audio_file_basename, os.path.basename(new_audio_file_path)))
+    except Exception as e:
+        logger.exception('Trouble exporting audio slice! Please double check your options. Check the trace: {}'.format(e))
 
 
 if __name__ == '__main__':
+    logger = logging.getLogger(__name__)
 
-    #download audio
+    # download audio if applicable
     options = construct_options()
     if not os.path.exists(OUTPUT_AUDIO_PATH):
         download_audio(options)
     else:
-        print('Path already exists! Try another link and/or change the name of the file.')
-
+        logger.warning('Path to audio already exists! Try another link and/or change the name of the file.')
+    
+    # slice if desired
     if SLICE:
         grab_audio_slice()
 
