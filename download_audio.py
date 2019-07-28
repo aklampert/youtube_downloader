@@ -4,18 +4,8 @@ import logging
 from pydub import AudioSegment
 from datetime import datetime as dt
 
-# Log
-logging.basicConfig(filename='download_audio.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-console = logging.StreamHandler()
-console.setLevel(logging.INFO)
 
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-console.setFormatter(formatter)
-
-logging.getLogger('').addHandler(console)
-
-
-# basic metadata
+# inputs
 YOUTUBE_LINK = 'https://www.youtube.com/watch?v=kHwc3EU9XZQ'
 AUDIO_TYPE = 'webm'
 DESIRED_AUDIO_TYPE = 'wav'
@@ -30,6 +20,17 @@ MAX_TIME = 26
 
 # deleting files
 DELETE_ORIGINAL = False
+
+# Log
+logging.basicConfig(filename='download_audio.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+console.setFormatter(formatter)
+
+logging.getLogger('').addHandler(console)
+
 
 ######################################
 # FUNCTIONS
@@ -54,7 +55,6 @@ def download_audio(options, youtube_link=YOUTUBE_LINK):
     with youtube_dl.YoutubeDL(options) as ydl:
         ydl.download([YOUTUBE_LINK])
     logger.info('YouTube download was successful!')
-    
 
 
 def grab_audio_slice(audio_file=OUTPUT_AUDIO_PATH, 
